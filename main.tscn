@@ -1,9 +1,24 @@
-[gd_scene load_steps=5 format=3 uid="uid://de5wxg8qrkf4a"]
+[gd_scene load_steps=9 format=3 uid="uid://de5wxg8qrkf4a"]
 
 [ext_resource type="Script" uid="uid://bi3pqj6axd8v5" path="res://main.gd" id="1_0xm2m"]
 [ext_resource type="PackedScene" uid="uid://dcf6wnr3bwfms" path="res://board.tscn" id="1_ig7tw"]
 [ext_resource type="Script" uid="uid://i4wx2inkfawk" path="res://camera_controller.gd" id="2_1bvp3"]
 [ext_resource type="PackedScene" uid="uid://q4tw4hfi3n32" path="res://game_ui.tscn" id="3_h2yge"]
+
+[sub_resource type="Gradient" id="Gradient_1bvp3"]
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_lquwl"]
+gradient = SubResource("Gradient_1bvp3")
+fill_from = Vector2(0.223118, 0)
+fill_to = Vector2(0.701613, 0.00268817)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1bvp3"]
+albedo_color = Color(0.0235294, 0.372549, 1, 1)
+albedo_texture = SubResource("GradientTexture2D_lquwl")
+roughness = 0.2
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_lquwl"]
+size = Vector2(500, 500)
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_0xm2m")
@@ -24,3 +39,8 @@ shadow_normal_bias = 0.5
 [node name="Board" parent="." instance=ExtResource("1_ig7tw")]
 
 [node name="GameUI" parent="." instance=ExtResource("3_h2yge")]
+
+[node name="SeaPlane" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+material_override = SubResource("StandardMaterial3D_1bvp3")
+mesh = SubResource("PlaneMesh_lquwl")
