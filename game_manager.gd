@@ -37,6 +37,8 @@ func _ready():
 	new_game()
 
 func new_game():
+	# Clear the visual board first
+	get_tree().get_root().get_node("Main/Board").clear_board()
 	current_state = GameState.new()
 	current_phase = GamePhase.PLACEMENT
 	current_player = 1
@@ -44,6 +46,7 @@ func new_game():
 	p2_workers_placed = 0
 	selected_worker_id = ""
 	print("New game started. Player 1, place your first worker.")
+	update_ui()
 
 func on_tile_selected(grid_pos):
 	if current_phase == GamePhase.GAME_OVER: return
@@ -195,7 +198,15 @@ func is_valid_build(worker_pos, build_pos):
 	return true
 
 func _game_over(win_message):
-	print("--- GAME OVER ---"); print(win_message); current_phase = GamePhase.GAME_OVER
+	print("--- GAME OVER ---")
+	print(win_message)
+	current_phase = GamePhase.GAME_OVER
+	
+	# Show winner message in UI
+	if game_ui:
+		game_ui.update_for_game_over(win_message)
+	
+	update_ui()
 
 func _can_player_make_any_move(player_id):
 	return not ai_agent._get_all_actions_for_player(current_state, player_id).is_empty()

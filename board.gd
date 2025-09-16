@@ -144,3 +144,43 @@ func _find_mesh_instance_in_children(node):
 			if grandchild is MeshInstance3D:
 				return grandchild
 	return null
+
+func clear_board():
+	print("Clearing board visuals...")
+	
+	# Remove all worker visuals
+	for worker_id in worker_nodes:
+		var worker_node = worker_nodes[worker_id]
+		if worker_node:
+			worker_node.queue_free()
+	worker_nodes.clear()
+	
+	# Remove only blocks and domes from tiles (not tile components)
+	for grid_pos in tile_nodes:
+		var tile_node = tile_nodes[grid_pos]
+		
+		# Only remove children that we know we added (blocks and domes)
+		var children_to_remove = []
+		for child in tile_node.get_children():
+			# Check if this is a block or dome we added
+			if is_dynamic_building(child):
+				children_to_remove.append(child)
+		
+		for child in children_to_remove:
+			child.queue_free()
+	
+	print("Board cleared successfully")
+
+# Helper function to identify blocks and domes we added
+func is_dynamic_building(node: Node) -> bool:
+	# Check if this node is one of our building instances
+	if node.scene_file_path == BLOCK_SCENE.resource_path:
+		return true
+	if node.scene_file_path == DOME_SCENE.resource_path:
+		return true
+	
+	# Alternative check by name if scene_file_path doesn't work
+	if node.name.begins_with("block") or node.name.begins_with("dome"):
+		return true
+		
+	return false
