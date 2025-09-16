@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://de5wxg8qrkf4a"]
+[gd_scene load_steps=4 format=3 uid="uid://de5wxg8qrkf4a"]
 
 [ext_resource type="Script" uid="uid://bi3pqj6axd8v5" path="res://main.gd" id="1_0xm2m"]
 [ext_resource type="PackedScene" uid="uid://dcf6wnr3bwfms" path="res://board.tscn" id="1_ig7tw"]
+[ext_resource type="PackedScene" uid="uid://q4tw4hfi3n32" path="res://game_ui.tscn" id="3_h2yge"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_0xm2m")
@@ -14,3 +15,5 @@ fov = 49.0
 transform = Transform3D(1, 0, 0, 0, 0.371368, 0.928486, 0, -0.928486, 0.371368, 0, 0, 0)
 
 [node name="Board" parent="." instance=ExtResource("1_ig7tw")]
+
+[node name="GameUI" parent="." instance=ExtResource("3_h2yge")]

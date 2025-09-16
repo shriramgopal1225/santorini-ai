@@ -4,3 +4,5 @@ func _ready():
 	# This line connects the board's signal to the GameManager's function.
 	# It says: "When $Board emits tile_clicked, call GameManager.on_tile_selected"
 	$Board.tile_clicked.connect(GameManager.on_tile_selected)
+	var game_ui = $GameUI
+	GameManager.set_game_ui(game_ui)
