@@ -1,15 +1,17 @@
-[gd_scene load_steps=4 format=3 uid="uid://de5wxg8qrkf4a"]
+[gd_scene load_steps=5 format=3 uid="uid://de5wxg8qrkf4a"]
 
 [ext_resource type="Script" uid="uid://bi3pqj6axd8v5" path="res://main.gd" id="1_0xm2m"]
 [ext_resource type="PackedScene" uid="uid://dcf6wnr3bwfms" path="res://board.tscn" id="1_ig7tw"]
+[ext_resource type="Script" uid="uid://i4wx2inkfawk" path="res://camera_controller.gd" id="2_1bvp3"]
 [ext_resource type="PackedScene" uid="uid://q4tw4hfi3n32" path="res://game_ui.tscn" id="3_h2yge"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_0xm2m")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.722919, 0.690933, 0, -0.690933, 0.722919, 2.60699, 9.00461, 11.4188)
+transform = Transform3D(1, 0, 0, 0, 0.722919, 0.690933, 0, -0.690933, 0.722919, 2.60699, 9.00461, 12.3778)
 fov = 49.0
+script = ExtResource("2_1bvp3")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.371368, 0.928486, 0, -0.928486, 0.371368, 0, 0, 0)
