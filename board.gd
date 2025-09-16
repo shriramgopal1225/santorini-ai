@@ -21,6 +21,7 @@ func _ready():
 	highlight_material.albedo_color = Color.YELLOW
 	generate_board()
 	debug_block_mesh()
+	#apply_tile_materials()
 
 func debug_block_mesh():
 	print("=== DEBUGGING BLOCK MESH ===")
@@ -184,3 +185,35 @@ func is_dynamic_building(node: Node) -> bool:
 		return true
 		
 	return false
+
+# Add this new function to board.gd
+func create_tile_material() -> StandardMaterial3D:
+	var material = StandardMaterial3D.new()
+	
+	# Base marble-like appearance
+	material.albedo_color = Color(0.9, 0.9, 0.95)  # Slightly off-white
+	material.metallic = 0.1  # Slight metallic sheen
+	material.roughness = 0.3  # Smooth but not mirror-like
+	material.specular = 0.7  # Nice reflections
+	
+	# Add subtle normal mapping effect
+	material.normal_scale = 0.2
+	
+	# Better lighting response
+	material.rim_enabled = true
+	material.rim = 0.2
+	material.rim_color = Color(0.8, 0.8, 1.0)
+	
+	return material
+
+# Add this to apply the material to tiles
+func apply_tile_materials():
+	var tile_material = create_tile_material()
+	
+	for grid_pos in tile_nodes:
+		var tile_node = tile_nodes[grid_pos]
+		var mesh_instance = _find_mesh_instance_in_children(tile_node)
+		if mesh_instance:
+			mesh_instance.material_override = tile_material
+	
+	print("Applied beautiful tile materials")

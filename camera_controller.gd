@@ -6,7 +6,7 @@ extends Camera3D
 @export var max_zoom: float = 15.0
 
 # SIMPLE KNOWN-GOOD VALUES
-var orbit_center: Vector3 = Vector3(3.0, 0.0, 2.5)  # Center of 5x5 board
+var orbit_center: Vector3 = Vector3(3.0, 0, 2.5)  # Center of 5x5 board
 var orbit_distance: float = 12.0
 var orbit_angle_h: float = 90.0   # Start facing forward
 var orbit_angle_v: float = 45.0  # HIGH angle = looking down from above
