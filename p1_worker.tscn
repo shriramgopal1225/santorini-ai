@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://bm20whfqs68cl"]
+
+[ext_resource type="PackedScene" uid="uid://befituso6oniu" path="res://models/mini_characters/GLB format/character-male-c.glb" id="1_cxg8y"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_g1wgr"]
+height = 1.63656
+
+[node name="WorkerP1" type="CharacterBody3D"]
+
+[node name="P1_Mesh" parent="." instance=ExtResource("1_cxg8y")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_g1wgr")

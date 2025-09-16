@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://blddfx4e7v0uh"]
+
+[ext_resource type="PackedScene" uid="uid://4y6ubj18idb" path="res://models/castle_kit/GLB format/tower-hexagon-mid.glb" id="1_im0tn"]
+
+[node name="Block" type="Node3D"]
+
+[node name="tower-hexagon-mid2" parent="." instance=ExtResource("1_im0tn")]

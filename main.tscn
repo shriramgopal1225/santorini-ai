@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3 uid="uid://de5wxg8qrkf4a"]
+
+[ext_resource type="Script" uid="uid://bi3pqj6axd8v5" path="res://main.gd" id="1_0xm2m"]
+[ext_resource type="PackedScene" uid="uid://dcf6wnr3bwfms" path="res://board.tscn" id="1_ig7tw"]
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_0xm2m")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.857769, 0.514035, 0, -0.514035, 0.857769, 3, 11.5653, 17.2364)
+fov = 49.0
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.371368, 0.928486, 0, -0.928486, 0.371368, 0, 0, 0)
+
+[node name="Board" parent="." instance=ExtResource("1_ig7tw")]
