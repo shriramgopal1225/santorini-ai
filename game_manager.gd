@@ -3,9 +3,6 @@ signal game_state_changed
 
 enum GamePhase { PLACEMENT, SELECT_WORKER, MOVE, BUILD, GAME_OVER }
 
-const PLAYER2_IS_AI = true
-const AI_DIFFICULTY = 3
-
 class GameState:
 	var board = []
 	var worker_positions = {}
@@ -30,6 +27,8 @@ var p1_workers_placed = 0
 var p2_workers_placed = 0
 var selected_worker_id: String = ""
 var game_ui: Control
+var player2_is_ai = true
+var ai_difficulty = 3
 
 var ai_agent = load("res://ai_agent.gd").new()
 
@@ -37,6 +36,11 @@ func _ready():
 	new_game()
 
 func new_game():
+	if GameSettings.game_mode == GameSettings.GameMode.PVP:
+		player2_is_ai = false
+	else:
+		player2_is_ai = true
+	ai_difficulty = GameSettings.ai_difficulty
 	# Clear the visual board first
 	get_tree().get_root().get_node("Main/Board").clear_board()
 	current_state = GameState.new()
@@ -50,7 +54,7 @@ func new_game():
 
 func on_tile_selected(grid_pos):
 	if current_phase == GamePhase.GAME_OVER: return
-	if PLAYER2_IS_AI and current_player == 2: return
+	if player2_is_ai and current_player == 2: return
 
 	match current_phase:
 		GamePhase.PLACEMENT: handle_placement(grid_pos)
@@ -84,7 +88,7 @@ func handle_placement(grid_pos):
 		print("All workers placed. Phase: SELECT_WORKER. Player 1's turn.")
 	else:
 		print("Player " + str(current_player) + ", place your worker.")
-		if PLAYER2_IS_AI and current_player == 2:
+		if player2_is_ai and current_player == 2:
 			_request_ai_placement()
 	update_ui()
 
@@ -116,7 +120,7 @@ func handle_move(grid_pos):
 	if destination_height == 3: _game_over("Player " + str(current_player) + " wins!"); return
 	
 	current_phase = GamePhase.BUILD
-	if not (PLAYER2_IS_AI and current_player == 2):
+	if not (player2_is_ai and current_player == 2):
 		print("Worker moved. Now in BUILD phase.")
 	update_ui()
 
@@ -141,7 +145,7 @@ func handle_build(grid_pos, worker_pos_override = null):
 	current_phase = GamePhase.SELECT_WORKER
 	print("Build successful. It is now Player " + str(current_player) + "'s turn.")
 	
-	if PLAYER2_IS_AI and current_player == 2:
+	if player2_is_ai and current_player == 2:
 		_request_ai_move()
 	update_ui()
 
@@ -149,8 +153,8 @@ func handle_build(grid_pos, worker_pos_override = null):
 func _request_ai_move():
 	print("AI is thinking...")
 	var search_depth = 1
-	if AI_DIFFICULTY == 2: search_depth = 3
-	elif AI_DIFFICULTY == 3: search_depth = 4
+	if ai_difficulty == 2: search_depth = 3
+	elif ai_difficulty == 3: search_depth = 4
 	
 	await get_tree().create_timer(0.1).timeout
 	
@@ -224,7 +228,7 @@ func update_ui():
 	# Update turn indicator
 	if current_player == 1:
 		game_ui.turn_indicator.text = "Player 1's Turn"
-	elif PLAYER2_IS_AI:
+	elif player2_is_ai:
 		game_ui.turn_indicator.text = "AI is thinking..."
 	else:
 		game_ui.turn_indicator.text = "Player 2's Turn"
