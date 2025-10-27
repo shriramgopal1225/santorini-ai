@@ -1,6 +1,6 @@
 extends Node
 
-# (find_best_move and minimax are unchanged)
+# --- Minimax parameters (existing logic kept) ---
 func find_best_move(state, depth, ai_player_id):
 	var best_score = -INF
 	var best_action = null
@@ -45,7 +45,7 @@ func minimax(state, depth, is_maximizing_player, ai_player_id, alpha, beta):
 			if beta <= alpha: break
 		return min_eval
 
-# (evaluate_state and _is_terminal are unchanged)
+# --- Evaluation ---
 func evaluate_state(state, ai_player_id):
 	var ai_score = 0
 	var opponent_score = 0
@@ -66,9 +66,7 @@ func _is_terminal(state):
 			return true
 	return false
 
-
-# --- UPDATED _get_next_state FUNCTION ---
-# It now handles actions that don't have a build step (i.e., winning moves)
+# --- State Simulation ---
 func _get_next_state(state, action):
 	var new_state = state.duplicate()
 	var from_pos = action.from
@@ -77,16 +75,11 @@ func _get_next_state(state, action):
 	new_state.board[to_pos.x][to_pos.y].worker = action.worker_id
 	new_state.worker_positions[action.worker_id] = to_pos
 	
-	# Only simulate a build if the action includes one
 	if action.build != null:
 		new_state.board[action.build.x][action.build.y].height += 1
-		
 	return new_state
-# ----------------------------------------
 
-
-# --- UPDATED _get_all_actions_for_player FUNCTION ---
-# It now recognizes a winning move as a complete action by itself
+# --- Action Generation ---
 func _get_all_actions_for_player(state, player_id):
 	var actions = []
 	var player_workers = []
@@ -101,30 +94,20 @@ func _get_all_actions_for_player(state, player_id):
 				if dx == 0 and dy == 0: continue
 				var to_pos = from_pos + Vector2i(dx, dy)
 				if to_pos.x < 0 or to_pos.x > 5 or to_pos.y < 0 or to_pos.y > 5: continue
-				
 				if _is_valid_move_for_ai(state, from_pos, to_pos):
-					# --- NEW LOGIC ---
-					# Check if this move is an instant win
 					var to_height = state.board[to_pos.x][to_pos.y].height
 					if to_height == 3:
-						# If it's a winning move, it's a complete action. No build needed.
 						actions.append({ "worker_id": worker_id, "from": from_pos, "to": to_pos, "build": null })
-						continue # Move on to the next potential move
-					# ------------------
-					
-					# If it's not a winning move, find a valid build to complete the action
+						continue
 					for bx in [-1, 0, 1]:
 						for by in [-1, 0, 1]:
 							if bx == 0 and by == 0: continue
 							var build_pos = to_pos + Vector2i(bx, by)
 							if build_pos.x < 0 or build_pos.x > 5 or build_pos.y < 0 or build_pos.y > 5: continue
-							
 							if _is_valid_build_for_ai(state, to_pos, build_pos):
 								actions.append({ "worker_id": worker_id, "from": from_pos, "to": to_pos, "build": build_pos })
 	return actions
-# ----------------------------------------------------
 
-# (The _is_valid... functions are unchanged)
 func _is_valid_move_for_ai(state, from_pos, to_pos):
 	if state.board[to_pos.x][to_pos.y].worker != null: return false
 	if from_pos.distance_to(to_pos) > 1.5: return false
@@ -139,3 +122,51 @@ func _is_valid_build_for_ai(state, worker_pos, build_pos):
 	if worker_pos.distance_to(build_pos) > 1.5: return false
 	if state.board[build_pos.x][build_pos.y].height >= 4: return false
 	return true
+
+# ====================================================================
+# === Q-LEARNING INTEGRATION =========================================
+# ====================================================================
+var Q = {}  # Stores learned Q-values (state+action)
+var alpha = 0.1  # Learning rate
+var gamma = 0.9  # Discount
+var epsilon = 0.2  # Exploration chance
+var move_history = []
+const SAVE_PATH = "user://qtable.save"
+
+func _ready():
+	if FileAccess.file_exists(SAVE_PATH):
+		load_q_table()
+	else:
+		print("No saved Q-table found, starting new learning...")
+
+func serialize_state(state):
+	return str(state.worker_positions) + str(state.board)
+
+func record_move(state, action):
+	move_history.append([serialize_state(state), action])
+
+func update_q_values(result):
+	var reward = 0
+	if result == "WIN":
+		reward = 1
+	elif result == "LOSE":
+		reward = -1
+	
+	for data in move_history:
+		var key = data[0] + str(data[1])
+		var old_q = Q.get(key, 0.0)
+		Q[key] = old_q + alpha * (reward - old_q)
+	move_history.clear()
+	save_q_table()
+
+func save_q_table():
+	var f = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	if f:
+		f.store_var(Q)
+		f.close()
+
+func load_q_table():
+	var f = FileAccess.open(SAVE_PATH, FileAccess.READ)
+	if f:
+		Q = f.get_var()
+		f.close()

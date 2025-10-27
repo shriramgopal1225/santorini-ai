@@ -4,7 +4,7 @@ signal game_state_changed
 enum GamePhase { PLACEMENT, SELECT_WORKER, MOVE, BUILD, GAME_OVER }
 
 const PLAYER2_IS_AI = true
-const AI_DIFFICULTY = 3
+var AI_DIFFICULTY = 3  # 1=Easy, 2=Medium, 3=Hard
 
 class GameState:
 	var board = []
@@ -37,7 +37,6 @@ func _ready():
 	new_game()
 
 func new_game():
-	# Clear the visual board first
 	get_tree().get_root().get_node("Main/Board").clear_board()
 	current_state = GameState.new()
 	current_phase = GamePhase.PLACEMENT
@@ -60,7 +59,6 @@ func on_tile_selected(grid_pos):
 
 func handle_placement(grid_pos):
 	if current_state.board[grid_pos.x][grid_pos.y].worker != null: return
-	
 	var worker_num = 0
 	if current_player == 1:
 		p1_workers_placed += 1
@@ -70,7 +68,6 @@ func handle_placement(grid_pos):
 		worker_num = p2_workers_placed
 	
 	var worker_id = "p" + str(current_player) + "_w" + str(worker_num)
-	
 	current_state.board[grid_pos.x][grid_pos.y].worker = worker_id
 	current_state.worker_positions[worker_id] = grid_pos
 	get_tree().get_root().get_node("Main/Board").spawn_worker_visual(worker_id, current_player, grid_pos)
@@ -122,7 +119,6 @@ func handle_move(grid_pos):
 
 func handle_build(grid_pos, worker_pos_override = null):
 	var worker_pos = worker_pos_override if worker_pos_override != null else current_state.worker_positions[selected_worker_id]
-
 	if not is_valid_build(worker_pos, grid_pos): print("Invalid build location!"); return
 		
 	current_state.board[grid_pos.x][grid_pos.y].height += 1
@@ -145,7 +141,7 @@ func handle_build(grid_pos, worker_pos_override = null):
 		_request_ai_move()
 	update_ui()
 
-# --- UPDATED _request_ai_move FUNCTION ---
+# --- AI Move Request ---
 func _request_ai_move():
 	print("AI is thinking...")
 	var search_depth = 1
@@ -153,24 +149,15 @@ func _request_ai_move():
 	elif AI_DIFFICULTY == 3: search_depth = 4
 	
 	await get_tree().create_timer(0.1).timeout
-	
 	var best_action = ai_agent.find_best_move(current_state, search_depth, 2)
-	
 	if best_action == null: _game_over("AI has no moves!"); return
-	print("AI chose its move.")
 	
+	ai_agent.record_move(current_state, best_action)
 	selected_worker_id = best_action.worker_id
 	handle_move(best_action.to)
-	
-	# --- THIS IS THE FIX ---
-	# If the move was a winning one, the game is now over. Do not proceed.
 	if current_phase == GamePhase.GAME_OVER:
 		return
-	# -----------------------
-
-	# The build step is only called if the move was NOT a winning one.
 	handle_build(best_action.build, best_action.to)
-# -----------------------------------------
 
 func _request_ai_placement():
 	var empty_spots = []
@@ -202,10 +189,15 @@ func _game_over(win_message):
 	print(win_message)
 	current_phase = GamePhase.GAME_OVER
 	
-	# Show winner message in UI
+	# Let the AI learn from the result
+	if PLAYER2_IS_AI:
+		if win_message.find("Player 2") != -1:
+			ai_agent.update_q_values("WIN")
+		elif win_message.find("Player 1") != -1:
+			ai_agent.update_q_values("LOSE")
+	
 	if game_ui:
 		game_ui.update_for_game_over(win_message)
-	
 	update_ui()
 
 func _can_player_make_any_move(player_id):
@@ -213,39 +205,14 @@ func _can_player_make_any_move(player_id):
 
 func set_game_ui(ui_node: Control):
 	game_ui = ui_node
-	# Update UI immediately
 	if game_ui:
 		update_ui()
 
 func update_ui():
-	if not game_ui:
-		return
-		
-	# Update turn indicator
+	if not game_ui: return
 	if current_player == 1:
 		game_ui.turn_indicator.text = "Player 1's Turn"
 	elif PLAYER2_IS_AI:
 		game_ui.turn_indicator.text = "AI is thinking..."
 	else:
 		game_ui.turn_indicator.text = "Player 2's Turn"
-	
-	# Update phase
-	match current_phase:
-		GamePhase.PLACEMENT:
-			game_ui.phase_indicator.text = "Phase: Worker Placement"
-			if current_player == 1:
-				game_ui.instructions_label.text = "Player 1: Click on any tile to place your worker."
-			else:
-				game_ui.instructions_label.text = "AI is placing a worker..."
-		GamePhase.SELECT_WORKER:
-			game_ui.phase_indicator.text = "Phase: Select Worker"
-			game_ui.instructions_label.text = "Click on one of your workers to select it."
-		GamePhase.MOVE:
-			game_ui.phase_indicator.text = "Phase: Move Worker"
-			game_ui.instructions_label.text = "Click on a tile adjacent to your worker to move."
-		GamePhase.BUILD:
-			game_ui.phase_indicator.text = "Phase: Build Block"
-			game_ui.instructions_label.text = "Click on a tile adjacent to your worker to build."
-	
-	# Update player info
-	game_ui.game_status.text = "Player 1: " + str(p1_workers_placed) + "/2 workers | AI: " + str(p2_workers_placed) + "/2 workers"
